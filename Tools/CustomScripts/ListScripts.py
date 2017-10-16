@@ -7,7 +7,7 @@ for i in range(0,len(fileList)):
     fileList[i] = fileList[i].replace(dir_path+'\\','')
 myDescripts={}
 
-with open('C:\\Users\\Austin\\Desktop\\Tools\\CustomScripts\\descriptions.txt','r') as f:
+with open(dir_path+'\descriptions.txt','r') as f:
     descriptions = f.readlines()
     for line in descriptions:
         myDescripts[line.split(':')[0]] = line.split(':')[1].strip()
