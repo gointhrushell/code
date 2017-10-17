@@ -1,6 +1,6 @@
 from sys import argv as ags,exit
 
-WHITESPACE = ['\t',' ','#','\n']
+WHITESPACE = ['\t',' ','#','\n',"'"]
 
 def getFuncts(data):
     functarray = []
@@ -32,7 +32,7 @@ def rewriteFile():
         print("Something was wrong with your input")
         exit(0)
             
-    with open(rewrite_name,"w") as filename:
+    with open(rewrite_name,'w') as filename:
         cont=0
     
         for i in data:

@@ -1,6 +1,6 @@
 from sys import argv as ags,exit
 
-WHITESPACE = ['\t',' ','#','\n']
+WHITESPACE = ['\t',' ','#','\n',"'"]
 
 def getFuncts(data):
     functarray = []
