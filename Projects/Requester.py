@@ -1,7 +1,6 @@
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import json as j4
-from bs4 import BeautifulSoup
 import argparse
 import sys
 
@@ -9,7 +8,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 def makeHTMLPage(url,message,use_json=1):
-    ''' Makes a page for CSURF testing
+    ''' Makes a page for CSURF testing, message needs to be in dictionary format
     '''
     if use_json:
         with open('C:\\Users\\Austin\\Desktop\\csrf.html','w') as filename:
@@ -28,6 +27,9 @@ def makeHTMLPage(url,message,use_json=1):
             filename.write('</form>')
         
 def makePushPost(url,message,cookies,use_json=1):
+    '''Message and cookies need to be in dictionary format when submitted to this function.
+    If you want the data sent as a plain message include json=0'''
+    
     global PROXY
     p = {} # Parameters
     # Cookies
@@ -50,7 +52,7 @@ def makePushPost(url,message,cookies,use_json=1):
 def main():
     global PROXY
     
-    url = "https://www.smashladder.com/mod/flair-manager"
+    url = ""
     message = {}    
     
     parse = argparse.ArgumentParser()
@@ -62,6 +64,8 @@ def main():
     parse.add_argument('-m','--make-page',action='store_true',help='make a csurf page')
     parse.add_argument('-p','--proxy',action='store_true',help='use the pre-defined proxy',dest='PROXY')
     var = (vars(parse.parse_args()))
+    
+    cookies = {}
     
     if var['PROXY'] == True:
         PROXY = True
@@ -91,7 +95,7 @@ def main():
             print("invalid value for data")
             sys.exit(0)
     else:
-        cookies = {"lad_sock_hash":"aa70550bb933394fa90334ee4c4302bb","lad_sock_remember_me":"anthrzy@gmail.com","lad_sock_user_id":"1","timezone":"America/Chicago"}
+        cookies = {}
                 
                     
     if var['make_page']:
