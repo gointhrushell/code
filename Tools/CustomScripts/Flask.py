@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import zlib
 import urllib.parse
 from itsdangerous import base64_decode

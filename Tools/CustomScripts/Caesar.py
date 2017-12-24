@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 string = input('Input your string: ')
 
 for i in range(1,26):
