@@ -58,7 +58,7 @@ def main():
     parse = argparse.ArgumentParser()
     parse.add_argument('-c','--cookies',type=str,help='cookies to use with the request',required=False)
     parse.add_argument('-d','--data',action='store',type=str,help='data to send in the post',dest='data')
-    parse.add_argument('-u','--url',type=str,help='url to send post', required=False,action='store',default=url)
+    parse.add_argument('-u','--url',type=str,help='url to send post', required=True,action='store')
     
     parse.add_argument('-j','--json',action='store_true',help='use json in the post request',dest='JSON')
     parse.add_argument('-m','--make-page',action='store_true',help='make a csurf page')

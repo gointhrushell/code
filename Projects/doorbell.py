@@ -7,18 +7,19 @@ import datetime
 import time
 from sys import argv,exit
 from twilio.rest import Client
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
+import secureMessaging as sm
 
 # Twilio API credentials.
 SID='AC0f584a3195547a6db67411165dc39e54' #MY_SID
 TOKEN='6ed00f6ea0be63825141e36f84c64f0b' # My Token
-#SEND='+12676648171'    # Cora's Number
-SEND='+18655481074'     # My number
+SEND='+12676648171'    # Cora's Number
+#SEND='+18655481074'     # My number
 FROM= '+12679301556'    # Twilio free number
 
 # Hosting configuration - make sure the server is statically assigned to 192.168.0.103 or similar
 HOST = ''
-SERVER = '192.168.0.103'
+SERVER = '127.0.0.1'#'192.168.0.103'
 PORT = 10030
 SECRET = 'HoldBackTheRiver'
 
@@ -30,7 +31,7 @@ def sendText(serverDown=0):
     time = datetime.datetime.now()
     client = Client(SID,TOKEN)
     message = client.messages.create(to=SEND,from_=FROM,body=('Your doorbell server might be down, but someone' if serverDown else 'Someone')
-                                         + 'rang your doorbell at '+ str(time.hour%12)+':'+str(time.minute)+' '
+                                         + ' rang your doorbell at '+ str(time.hour%12)+':'+str(time.minute)+' '
                                          +('pm ' if time.hour//12 else 'am ')+ 'on ' + str(time.day)+' ' 
                                          + str(MONTHS[time.month-1]))
 
@@ -85,25 +86,30 @@ def startServer():
     # touching the pi but that might be due to my poor soldering and/or lack of wire insulation
     # and registering signals that weren't actually there    
     
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(4,GPIO.OUT,pull_up_down=GPIO.PUD_DOWN)  # Our server should be outputting on pin 4 
+    #GPIO.setmode(GPIO.BCM)
+    #GPIO.setup(4,GPIO.OUT,pull_up_down=GPIO.PUD_DOWN)  # Our server should be outputting on pin 4 
     try:
         s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
             s.bind((HOST,PORT)) # Binding server to HOST on PORT
         except socket.error as msg:
             print("Bind Failed: " + str(msg[0]) + ' '+str(msg[1]))
+        
         s.listen(10)
         resp =b'<html><p>Hello World</p></html>' # Message to send in an html response
         lasttime = datetime.datetime.now()
         while 1:
+            print("SERVER ACTION")
             conn, addr = s.accept()
+            print(conn)
             action = conn.recv(1024) # The client should send a request in the format action:hash
             
             try:
                 if b'ring_Doorbell' in action:
+                    
                     if ((datetime.datetime.now() - lasttime) > datetime.timedelta(seconds=30)):
                         if checkPass(action.decode('utf8').split(':')[1]): # get just the hash to verify
+                            
                             ring = threading.Thread(target=ringDoorbell) 
                             ring.start()
                             
@@ -137,29 +143,36 @@ def sendRing():
     '''
     # TODO: Determine if this function knows about the GPIO set up. If it does we can disable
     # the event callback for 30 seconds here as well as on the server
-    
+    connection = sm.Client(SERVER,PORT,SECRET)
     counter=0
     success=0
     
     # Since the internet connection might be slow we try to send the ring multiple times.
     # if it doesn't work the first time
     while counter < 5:
-        key = genPass()
+        #key = genPass()
         data = ''
         
         try:
+            '''
             s=socket.socket()
             s=socket.timeout(2)
             s=socket.connect((SERVER,PORT))
             s.settimeout(2)
             s.send(b'ring_Doorbell:'+bytes(key,'utf8'))
             s.settimeout(2)
+            '''
+            connection.reconnect()
+            connection.send('ring_Doorbell')
             try:
+                '''
                 data = s.recv(1024)
                 data = data.decode('utf8')
+                '''
+                data = connection.recieve()
                 if 'success' in data.lower():
                     success = 1
-                    s.close()
+                    #s.close()
                     counter=6
                     break
                 if "please wait" in data.lower():
@@ -171,6 +184,7 @@ def sendRing():
         except:
             pass
         counter+=1
+        connection.close()
             
     if not success and counter>=5:
         sendText(serverDown=1)
@@ -178,6 +192,8 @@ def sendRing():
     
 def startClient():
     '''Starts a doorbell client set up to detect a button input on pin 4'''
+    sendRing()
+    '''
     GPIO.setmode(GPIO.BCM) 
     GPIO.setup(4,GPIO.IN,pull_up_down=GPIO.PUD_DOWN) # Reading button input from pin 4
     GPIO.add_event_detect(4,GPIO.RISING) # Detecting only rising edge
@@ -188,7 +204,7 @@ def startClient():
     except: # should catch keyboard interrupt so you can do GPIO.cleanup if needed but...who knows
         print("goodbye")
         GPIO.cleanup()
-      
+     ''' 
     
 def ringDoorbell():
     # This is going to have to be configured to send a signal to the chime
