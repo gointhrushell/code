@@ -13,8 +13,8 @@ import secureMessaging as sm
 # Twilio API credentials.
 SID='AC0f584a3195547a6db67411165dc39e54' #MY_SID
 TOKEN='6ed00f6ea0be63825141e36f84c64f0b' # My Token
-SEND='+12676648171'    # Cora's Number
-#SEND='+18655481074'     # My number
+#SEND='+12676648171'    # Cora's Number
+SEND='+18655481074'     # My number
 FROM= '+12679301556'    # Twilio free number
 
 # Hosting configuration - make sure the server is statically assigned to 192.168.0.103 or similar
