@@ -50,7 +50,10 @@ def sendKill(client):
     for i in to_message:
         client.messages.create(to=i,from_='+12037936216',body='The server has shut down')
 
-
+def sendRenew(client):
+    for i in to_message:
+        client.messages.create(to=i,from_='+12037936216',body='The time limit on the server has been renewed')
+        
 while True:
     
     if checkMessages(client):
@@ -62,6 +65,7 @@ while True:
             time.sleep(WAIT_TIME*60)
 
             if checkMessages(client):
+                sendRenew(client)
                 count=0
             else:
                 count+=1
