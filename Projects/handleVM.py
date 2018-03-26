@@ -4,6 +4,8 @@ from twilio.rest import Client
 import subprocess
 import os,time
 
+to_message=[]
+
 WAIT_TIME = 5 # Time in minutes between checks
 AUTH_WORDS = ['cdimmig','wolfpack270']
 MINUTES_STAY_ALIVE=60
@@ -28,6 +30,7 @@ def checkMessages(client):
             for i in messages:
                 if 'inbound' in i.direction:
                     if AUTH_WORDS[0] in i.body.lower() or AUTH_WORDS[1] in i.body.lower():
+                        to_message.append(i.from_)
                         return 1
             return 0
         except:
@@ -36,13 +39,16 @@ def checkMessages(client):
 
 
 def sendAlert(client):
-    client.messages.create(to='+18655481074',from_='+12037936216',body='If you are still working with Guacamole, please re-authorize')
+    for i in to_message:
+        client.messages.create(to=i,from_='+12037936216',body='If you are still working with Guacamole, please re-authorize')
 
 def sendConfirm(client):
-    client.messages.create(to='+18655481074',from_='+12037936216',body='Starting Guacamole')
+    for i in to_message:
+        client.messages.create(to=i,from_='+12037936216',body='Starting Guacamole')
 
 def sendKill(client):
-    client.messages.create(to='+18655481074',from_='+12037936216',body='The server has shut down')
+    for i in to_message:
+        client.messages.create(to=i,from_='+12037936216',body='The server has shut down')
 
 
 while True:
@@ -65,6 +71,6 @@ while True:
                         
         sendKill(client)
         killVM()
-        
+        to_message=[]
     time.sleep(WAIT_TIME*60)
          
