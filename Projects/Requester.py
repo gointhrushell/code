@@ -6,6 +6,9 @@ import sys
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+global PROXY
+PROXY = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
+
 
 def makeHTMLPage(url,message,use_json=1):
     ''' Makes a page for CSURF testing, message needs to be in dictionary format
@@ -26,82 +29,75 @@ def makeHTMLPage(url,message,use_json=1):
             filename.write('<input type=submit value=Test!>')
             filename.write('</form>')
         
-def makePushPost(url,message,cookies,use_json=1):
+def makePushPost(url,message,cookies,use_json=1,use_proxy=0):
     '''Message and cookies need to be in dictionary format when submitted to this function.
     If you want the data sent as a plain message include json=0'''
     
-    global PROXY
     p = {} # Parameters
     # Cookies
     c = cookies
     
-    if PROXY:
-        proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
-    else:
-        proxies = {}
     headers = {'Accept':'*/*','Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8','User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0'}
     
     if use_json:
-        message = j4.dumps(message) # Reformat to json dump
+        try:
+            message = j4.dumps(message) # Reformat to json dump
+        except:
+            print("Invalid JSON data, please check the -d option and try again")
+            sys.exit(0)
     
-    r = requests.post(url,headers=headers, params = p,proxies=proxies, cookies = c,data=message,  verify=False)
-    response = r.text
-    print(response.replace('\\\\','\\').replace('\\n','\n').replace('\\\\',''))
-    print(len(response.replace('\\\\','\\').replace('\\n','\n').replace('\\\\','')))
+    r = requests.post(url,headers=headers, params = p,proxies=(PROXY if use_proxy==1 else {}), cookies = c,data=message,  verify=False)
+    
+    #response = r.text
+    #print(response.replace('\\\\','\\').replace('\\n','\n').replace('\\\\',''))
+    #print(len(response.replace('\\\\','\\').replace('\\n','\n').replace('\\\\','')))
+    print(r.content.decode('utf-8'))
 
 def main():
-    global PROXY
     
-    url = ""
+    #url = ""
     message = {}    
     
     parse = argparse.ArgumentParser()
-    parse.add_argument('-c','--cookies',type=str,help='cookies to use with the request',required=False)
-    parse.add_argument('-d','--data',action='store',type=str,help='data to send in the post',dest='data')
-    parse.add_argument('-u','--url',type=str,help='url to send post', required=True,action='store')
-    
+    parse.add_argument('-c','--cookies',type=str,help='cookies to use with the request eg <auth=a14dfe,remember=1>',required=False)
+    parse.add_argument('-d','--data',action='store',type=str,help='data to send in the post eg <message=test&id=2>',dest='data')
     parse.add_argument('-j','--json',action='store_true',help='use json in the post request',dest='JSON')
     parse.add_argument('-m','--make-page',action='store_true',help='make a csurf page')
-    parse.add_argument('-p','--proxy',action='store_true',help='use the pre-defined proxy',dest='PROXY')
+    parse.add_argument('-p','--proxy',action='store_true',help='use the pre-defined proxy',dest='use_proxy')
+    parse.add_argument('-u','--url',type=str,help='url to send post', required=True,action='store')
     var = (vars(parse.parse_args()))
     
-    cookies = {}
-    
-    if var['PROXY'] == True:
-        PROXY = True
-    else:
-        PROXY = False
         
-    
+    # Parse out data to put in message body    
     if var['data']:
         try:
-            data = var['data'].split(',')
+            data = var['data'].split('&')
             for i in data:
-                i = i.split(':')
+                i = i.split('=')
                 for x in range(0,len(i)-1,2):
                     message[i[x]] = i[x+1]
         except:
-            print("invalid value for data")
+            print("Invalid value for data. Check the -d option and try again")
             sys.exit(0)
             
+            
+    cookies={}        
     if var['cookies']:
         try:
             data = var['cookies'].split(',')
             for i in data:
-                i = i.split(':')
+                i = i.split('=')
                 for x in range(0,len(i)-1,2):
                     cookies[i[x]] = i[x+1]
         except:
-            print("invalid value for data")
+            print("Invalid value for cookies. Check the -c option and try again")
             sys.exit(0)
-    else:
-        cookies = {}
                 
                     
     if var['make_page']:
         makeHTMLPage(var['url'],message,var['JSON'])
     else:
-        makePushPost(var['url'],message,cookies,var['JSON'])
+        makePushPost(var['url'],message,cookies,var['JSON'],var['use_proxy'])
 
 if __name__=='__main__':  
     main()
