@@ -9,7 +9,7 @@ shellcode = ('\x31\xc0\x99\x52\x68\x2f\x63\x61\x74\x68\x2f\x62\x69\x6e\x89\xe3\x
 
 organized_payloads = {}
 organized_payloads['bof']=['a'*300,"\x8b\x87\x04\x08"*100]
-organized_payloads['format']=['%x','%n '*10,'a'*16+' %x']
+organized_payloads['format']=['%x','%n']
 organized_payloads['rce']=['`ls`','$(ls)','#$(ls)']
 organized_payloads['sql']=["'-- ",'"-- ',"' or 'adsa'='adsa"]
 organized_payloads['logic']=['; return true','; return True','; return false','; return False']
@@ -17,8 +17,7 @@ organized_payloads['misc']=[i*10 for i in string.punctuation]
 organized_payloads['whitespace']=[' '*66,'\n'*64,'\t'*32]
 organized_payloads['stupid']=['-s','--shell','--exec ls','--exec']
 
-pattern = r'(?i)segmentation|fault|stack smashing|shell|bash|execute|\[.*?\] (.*?)\[.*?\].*?segfault at \d+ ip (\d+)'
-digit_search=r'(\d+)$'
+pattern = r'Segmentation fault|sigsev|stack smashing|shell|bash|execute|\[.*?\] (.*?)\[.*?\].*?segfault at [0-9a-fA-F]+ ip ([0-9a-fA-F]+)'
 
 def get_files(path,recurse):
     files = []
@@ -37,17 +36,18 @@ def stdOutput(proc,stdout_data):
             stdout_data.put(line)
 
 
+
 def stdinInput(path,pay_type,payload):
+    #print(path,pay_type,payload)
     stdout_data = multiprocessing.Queue()
     output = ''
     try:
         p = Popen([path], stdout=PIPE, stdin=PIPE, stderr=PIPE,shell=True)
         t = multiprocessing.Process(target=stdOutput,args=(p,stdout_data))
         t.start()
-        time.sleep(1)
+        time.sleep(.1)
         p.communicate(bytes(payload+'\n','utf-8'),timeout=1)
-        time.sleep(1)
-
+        time.sleep(.1)
         t.terminate()
         
 
@@ -58,10 +58,9 @@ def stdinInput(path,pay_type,payload):
             dmesg = check_output("dmesg -e | tail -n 1",shell=True).decode('utf-8')
             match = re.search(pattern,dmesg)
             if match:
-                print(f'Potential Exploit in {match.group(1)}: EIP = ',match.group(2))
+                print(f'Potential {pay_type} in {match.group(1)}: EIP = ',match.group(2))
         else:
             pass
-        input("WAIT")
         return
     except Exception as e:
         print("Unable to communicate with the process")
