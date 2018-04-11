@@ -190,6 +190,7 @@ def stdinInput(path,pay_type,payload,new_baseline):
         else:
             if 'timed out' not in str(e) or VERBOSE:
                 print(e)
+            logger(e)
         return
     finally:
         os.kill(pid,9)
