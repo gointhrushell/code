@@ -245,6 +245,10 @@ if __name__ == '__main__':
     a.add_argument('-r','--recurse',help='Include to recursively look through directory provided',action='store_true',dest='recurse')
     var = (vars(a.parse_args()))
     
+    if os.name=='nt':
+        print("Please run on unix machines. This is meant to be used to fuzz ELF files")
+        sys.exit(0)
+        
     path = os.path.normpath(var['path'].replace('./',os.getcwd()+'/',1))
     recurse=(True if var['recurse'] else False)
     ext=('**' if recurse else '*')
@@ -260,7 +264,7 @@ if __name__ == '__main__':
     if os.path.isfile(path):
         files = [path]
     else:
-        files = get_files(path+('\\' if os.name=='nt' else '/')+ext,recurse)
+        files = get_files(path+'\\'+ext,recurse)
         
     if var['pre']:
         pre_input = interp_hex_cmdline(var['pre'])    
