@@ -30,7 +30,7 @@ organized_payloads['misc']=[i*2 for i in string.punctuation]
 organized_payloads['alpha']=['a','A','z','Z']
 organized_payloads['digits']=['-1','0','1','9']
 
-pattern = re.compile(r'(?:Segmentation fault)|(?:sigsev)|(?:stack smashing)|(?:\[.*?\] (.*?)\[.*?\].*?segfault at [0-9a-fA-F]+ ip ([0-9a-fA-F]+))',flags=re.I)
+pattern = re.compile(r'(?:Segmentation fault)|(?:sigsev)|(?:stack smashing)|(?:\[.*?\] (.*?)\[.*?\].*?segfault at ([0-9a-fA-F]+) ip ([0-9a-fA-F]+))',flags=re.I)
 format_pattern=re.compile(r'[0-9a-fA-F]{18}',flags=re.I)
 hexin = re.compile(r'(\\x)([0-9a-fA-F]{2})')
 
@@ -155,17 +155,20 @@ def stdinInput(path,pay_type,payload,new_baseline):
                 dmesg = check_output("dmesg -e | tail -n 1",shell=True).decode('utf-8')
                 match = re.search(pattern,dmesg)  # Lets get the EIP to help out!
                 if match:
-                    EIP = match.group(2)[-8:]
-                    pattern_offset = binascii.unhexlify(EIP)[::-1].decode('utf-8')
+                    EIP = match.group(3)[-8:]
+                    try:
+                        pattern_offset = binascii.unhexlify(EIP)[::-1].decode('utf-8')
+                    except:
+                        pattern_offset = binascii.unhexlify(EIP)[::-1]
                     
-                    pattern_offset = payload.index(pattern_offset)
+                    pattern_offset = payload.index(str(pattern_offset))
                     text = '*'*20+f'\nPotential {pay_type} in {match.group(1)}: EIP = ' + EIP +'\nPattern offset = ' + str(pattern_offset)+'\n'+'*'*20
                     print(text)
                     
                     if pay_type != 'bof':
                         logger(text+"\n"+f'Payload: {proc_input}\n',1)
                     else:
-                        logger(text+"\n"+f'Offset: {pattern_offset}\n',1)
+                        logger(text+"\n"+f'Exploit pattern: python -c \'print("\\x90"*{pattern_offset}+"\\x00\\x00\\x00\\x00")\' | {path}\n',1)
                         bof_exception = BOF()
                         raise bof_exception
 
@@ -184,7 +187,13 @@ def stdinInput(path,pay_type,payload,new_baseline):
     except Exception as e:
         #print(f"Unable to communicate with the process with payload {proc_input}")
         if str(e) == 'substring not found':
-            text = f'Potential bof but pattern not recognized.'
+            text = f'Potential bof but pattern not recognized. Segfault at {match.group(2)}'
+            try:
+                pattern_offset = binascii.unhexlify(match.group(2))[::-1].decode('utf-8')
+                pattern_offset = payload.index(str(pattern_offset))
+                text += f". This offset is {pattern_offset}"
+            except:
+                pass
             print(text)
             logger(f'Potential bof in {path} with payload length {len(payload)} but pattern not recognized. Try increasing payload size')
         else:
