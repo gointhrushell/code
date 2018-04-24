@@ -7,6 +7,7 @@ import os,multiprocessing,binascii
 LOGFILE = '/tmp/fuzz.log'
 SUCCESSFILE = '/tmp/exploit.log'
 VERBOSE = 0
+printed = 0
 
 ruby_pattern = 'Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8A' \
     'c9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag' \
@@ -22,7 +23,7 @@ organized_payloads = {}
 organized_payloads['bof']=[ ruby_pattern[:i] for i in [17,33,65,200,300,400,500,600,700,800]]
 
 
-organized_payloads['format']=['%018x','%n']
+organized_payloads['format']=['%018x','%n%n']
 organized_payloads['rce']=['`/bin/ls`','$(/bin/ls)','#$(/bin/ls)']
 organized_payloads['sql']=["'-- ",'"-- ',"' or 'adsa'='adsa"]
 organized_payloads['logic']=['; return true','; return True','; return false','; return False']
@@ -99,18 +100,17 @@ def baseline(path,payload):
             pid = t.pid
             proc_input = build_input(payload)
             
-            time.sleep(.1)
+            (time.sleep(.3) if 'wrapper.py' in path else time.sleep(.1))
             p.stdin.write(proc_input)
-        
             p.communicate(timeout=2)
         except:
             pass
-        time.sleep(.1)
+        (time.sleep(.3) if 'wrapper.py' in path else time.sleep(.1))
         os.kill(pid,9)
         
         for i in range(stdout_data.qsize()):
             output += stdout_data.get()
-        p.kill()   
+          
         if output=='':
             raise NOBASE
         return output
@@ -119,13 +119,17 @@ def baseline(path,payload):
     except Exception as e:
         print("Establishing baseline failed")
         print(e)
+    finally:
+        os.kill(pid,9)
+        p.kill()    
     
-def stdinInput(path,pay_type,payload,new_baseline):
-    
+def stdinInput(path,pay_type,payload,new_baseline,wrapped=0):
+    global printed
     stdout_data = multiprocessing.Queue()
     output = ''
     try:
-        p = Popen([path + " 2>/dev/null"*VERBOSE], stdout=PIPE, stdin=PIPE, stderr=PIPE,shell=True)
+        call = ("/root/Desktop/fuzz_folder/wrapper.py ")*wrapped+path + " 2>/dev/null"*VERBOSE
+        p = Popen([call], stdout=PIPE, stdin=PIPE, stderr=PIPE,shell=True)
         t = multiprocessing.Process(target=get_output,args=(p,stdout_data))
         t.start()
         pid = t.pid
@@ -133,6 +137,7 @@ def stdinInput(path,pay_type,payload,new_baseline):
         
         time.sleep(.1)
         p.stdin.write(proc_input)
+        (time.sleep(.1) if wrapped else time.sleep(0))
         p.communicate(timeout=2)
         time.sleep(.1)
         
@@ -141,16 +146,22 @@ def stdinInput(path,pay_type,payload,new_baseline):
             output += stdout_data.get()
         poll = p.poll()
         
-        if pay_type=='bof' or pay_type=='format': # These should pretty much be the only ones causing seg faults so lets check them out with special care
 
 ############################## Checking for hex leaked by %018x ############################## 
+        if pay_type=='format':
             format_test = re.search(format_pattern,output)
             if format_test:
-                text = f'Format string vulnerability! {payload} leaked {format_test[0]}'
-                print("Format string vulnerability")
-                logger(text+"\n",1)
+                text = f'Format string vulnerability! {payload} leaked {format_test[0]}\n'
+                print(text)
+                logger(text,1)
+            if poll==139:
+                text = f"{payload} may have caused a segfault\n"
+                print(text)
+                logger(text,1)
+            
 
 ############################## Checking for segfaults ##############################
+        if pay_type=='bof':
             if poll == 139: #Detected segfault
                 dmesg = check_output("dmesg -e | tail -n 1",shell=True).decode('utf-8')
                 match = re.search(pattern,dmesg)  # Lets get the EIP to help out!
@@ -163,19 +174,19 @@ def stdinInput(path,pay_type,payload,new_baseline):
                     
                     pattern_offset = payload.index(str(pattern_offset))
                     text = '*'*20+f'\nPotential {pay_type} in {match.group(1)}: EIP = ' + EIP +'\nPattern offset = ' + str(pattern_offset)+'\n'+'*'*20
-                    print(text)
-                    
-                    if pay_type != 'bof':
-                        logger(text+"\n"+f'Payload: {proc_input}\n',1)
-                    else:
-                        logger(text+"\n"+f'Exploit pattern: python -c \'print("\\x90"*{pattern_offset}+"\\x00\\x00\\x00\\x00")\' | {path}\n',1)
-                        bof_exception = BOF()
-                        raise bof_exception
+                    print(text+"\n")
+                    logger(text+"\n"+f'Exploit pattern: python -c \'print("\\x90"*{pattern_offset}+"\\x00\\x00\\x00\\x00")\' | {path}\n',1)
+                    bof_exception = BOF()
+                    raise bof_exception
 
         elif pay_type == 'misc' or pay_type=='alpha' or pay_type=='digits' or pay_type=='rce' or pay_type=='sql': # Who knows whats gonna break or how
             if output != new_baseline:
-                text = f"Unexpected output with {proc_input} as input. This is commonly a false report"
-                print(text)
+                text = "Unexpected output detected\n"
+                if not printed:
+                    print(text)
+                    printed=1
+                
+                text += f" with {proc_input} as input. This is commonly a false report"
                 logger(text+"\nOutput:\n"+output)
                 
         
@@ -207,6 +218,7 @@ def stdinInput(path,pay_type,payload,new_baseline):
 
 
 def main():
+    global printed
     with open(LOGFILE, 'w') as log: # Clear the log file before writing a new test case
         pass
     
@@ -235,12 +247,14 @@ def main():
                 print("Error, exiting")
                 sys.exit(0)
         for j in organized_payloads.keys():
+            printed=0
             text = f'\t Checking {j}\n'
             logger(text)
             print(text)
             try:
                 for k in organized_payloads[j]:
                     stdinInput(i,j,k,new_baseline)
+                    #stdinInput(i,j,k,new_baseline,1)
             except BOF:
                 continue
     print(f"\nFinished\nSee {SUCCESSFILE} for buffer overflows and format strings\nSee {LOGFILE} for other info")
