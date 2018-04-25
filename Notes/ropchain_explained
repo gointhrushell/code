@@ -1,0 +1,10 @@
+building a payload:
+
+1. Fill buffer
+2. first command address 
+3  need pop;pop;ret (need pops for each arg + 1)	 <- pop
+4  args to first command *POINTERS* 		 	 <- pop
+5  next command			 		 	 <- ret
+
+repeat
+
