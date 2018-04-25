@@ -21,7 +21,7 @@ elif sys.argv[1].lower() == 'remote':
         sys.exit(0)
     if sys.argv[2].lower() not in ('localhost','127.0.0.1'):
         REMOTE = True
-        libc = ELF('/tmp/out/lib/x86_64-linux-gnu/libc.so.6',False) # Not the right libc...but it has the correct offsets except /bin/sh
+        libc = ELF('/root/Desktop/libs/custom_downloaded/libc6_2.23-0ubuntu10_amd64/libc.so.6',False) # Not the right libc...but it has the correct offsets except /bin/sh
     else:
         REMOTE = False
         libc = ELF('/lib/x86_64-linux-gnu/libc.so.6',False)
