@@ -25,20 +25,55 @@ def getUser():
             f.writelines(user)
     return user
 
+def getUsername():
+    if os.path.exists(USERFILE+'.name'):
+        with open(USERFILE+'.name','r') as f:
+            user = f.readline().strip()
+            
+    else:
+        user = input("What is your username?\n> ")
+        with open(USERFILE+'.name','w') as f:
+            f.writelines(user)
+    return user    
+
+def deleteMess(browser,ids):
+    req = requests.Request('DELETE', 'https://discordapp.com/api/v6/channels/229076842953441281/messages/'+ids)
+    print("REQ: ",req.prepare())
+    
     
 if __name__ == '__main__':
     print("If you would ever like to change your email open this file in a text editor")
     print(os.path.expandvars(USERFILE))
     print('')
+    
+    
     user = getUser()
     passwd = getpass.getpass('Password: ')
+    
     browser = requests.Session()
     browser.headers.update(HEADERS)
     browser.headers.update({'origin':'https://discordapp.com','x-fingerprint':'438421368078467081.H37psIKrKz4Fm8DSGK3w73DadGw'})
+    
     r = browser.get('https://discordapp.com',proxies=PROXIES,verify=False)
-    datas = {'email':user,'password':passwd,'undelete':'false','captcha_key':None}#'03AJpayVHbxhFoQpjH0uD4u729i7FmqDBfQTkU-JTIfJETC7QMeIZQlPA6G2HCt-EY1QovZBLSyC9Z_aVHDUxPXfSOuelBRRH5KmZoRy4-7NOlKiR2_H1kMb9ye0q73IDecJgvXRghA6vGnGUqFcnt-XY979Fk1Df9YRGcOqBQrdFQ5LVqETQZWYutY9CkZoXVYzeyS1cy1fiHokZV5m-aqS_1tBsK3SSXvlpnMAiQb8lvjddKwVoKNWnB50lQJSgf5k6r35SGGwct5owGLt_Y_AWuBEhWjbxLrX_33wuPWnRByKA1VWeGK7V9SXIjOX9Qlh1S50jZ_6MJr0E7Fh-CqPH-a0pLjDHDOg'}
+    datas = {'email':user,'password':passwd,'undelete':'false','captcha_key':None}
     r=browser.post(BASE_URL+'auth/login',json=datas,proxies=PROXIES,verify=False)
     token = r.json()['token']
-    print("Token",token)
+    #print("Token",token)
     browser.headers.update({'authorization':token})
-    #browser.get(
+    
+    
+    r = browser.get('https://discordapp.com/api/v6/channels/229076842953441281/messages?limit=50')
+    messages = r.json()
+    for i in messages:
+        if i['author']['username'] == getUsername():
+            try:
+                req = requests.Request('DELETE', 'https://discordapp.com/api/v6/channels/229076842953441281/messages/'+i['id'])
+                prepped = browser.prepare_request(req)
+                r=browser.send(prepped)
+                check = r.json()
+                if check['retry_after']:
+                    time.sleep(check['retry_after'])
+                    print("Sleeping for", check['retry_after'])
+            except Exception as e:
+                print(e)
+                pass

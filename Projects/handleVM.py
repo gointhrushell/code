@@ -30,8 +30,13 @@ def checkMessages(client):
             for i in messages:
                 if 'inbound' in i.direction:
                     if AUTH_WORDS[0] in i.body.lower() or AUTH_WORDS[1] in i.body.lower():
-                        to_message.append(i.from_)
+                        if i.from_ not in to_message:
+                            to_message.append(i.from_)
                         return 1
+                    if 'kill' in i.body.lower():
+                        if i.from_ not in to_message:
+                            to_message.append(i.from_)
+                        return 2
             return 0
         except:
             count+=1
@@ -55,24 +60,29 @@ def sendRenew(client):
         client.messages.create(to=i,from_='+12037936216',body='The time limit on the server has been renewed')
         
 while True:
-    
-    if checkMessages(client):
+    val = checkMessages(client)
+    if val==1:
         sendConfirm(client)
         startVM()
         count=0
         while count<MINUTES_STAY_ALIVE/WAIT_TIME:
             
             time.sleep(WAIT_TIME*60)
-
-            if checkMessages(client):
+            new_val = checkMessages(client)
+            if new_val==1:
                 sendRenew(client)
                 count=0
             else:
                 count+=1
-                
+            if new_val == 2:
+                break
             if count>=MINUTES_STAY_ALIVE/WAIT_TIME-2 and count!=MINUTES_STAY_ALIVE/WAIT_TIME:
                 sendAlert(client)
                         
+        sendKill(client)
+        killVM()
+        to_message=[]
+    elif val==2:
         sendKill(client)
         killVM()
         to_message=[]
