@@ -1,0 +1,9 @@
+{
+  "name": "Lazy Dev",
+  "category": "Web Exploitation",
+  "description": "My class likes to share study materials so to help everyone out I coded up this <a href=\"http://{{server}}:{{port}}\">website</a> for flashcards!",
+  "score" : 100,
+  "hints": ["Are there any common vulnerabilities with the backend of the website?","Is there anywhere that filtering doesn't seem to work quite right?" ],
+  "author": "Austin McWhirter",
+  "organization": "picoCTF"
+}

@@ -1,0 +1,31 @@
+<html>
+    <head>
+        {% if title %}
+        <title>{{ title }}</title>
+        {% else %}
+        <title>Testing</title>
+        {% endif %}
+    </head>
+    <body>
+        <div>
+            FlashCards:
+            <a href='{{url_for("index")}}'>Home</a>
+            <a href='{{url_for("register")}}'>Login</a>
+			<a href='{{url_for("create_card")}}'>Create</a>
+			<a href='{{url_for("delete_card")}}'>Delete</a>
+			<a href='{{url_for("list_cards")}}'>List</a>
+			<a href='{{url_for("admin")}}'>Admin</a>
+        </div>
+        <hr>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        
+            {% for message in messages %}
+            <span style="color: red">{{ message }}</span>
+            {% endfor %}
+        
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </body>
+</html>

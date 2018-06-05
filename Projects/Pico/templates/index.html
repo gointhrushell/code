@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <h1>Welcome{% if user.name %} {{ user.name }} {% else %}! Please log in to continue. {% endif %}</h1>
+    
+	
+
+
+{% endblock %}

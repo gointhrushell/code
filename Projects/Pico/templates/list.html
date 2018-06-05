@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>List of Cards</h1>
+{% if cards %}
+	<ul>
+	{% for card in cards %}
+		<li>{{ card['title'] }}
+			<ul>
+			<li>
+			{{ card['question'] }}
+			</li>
+			<li>
+			{{ card['answer'] }}
+			</li>
+			</ul>
+		</li>
+		<br>
+	{% endfor %}
+	</ul>
+{% else %}
+	<p>Nothing to show here</p>
+{% endif %}
+{% endblock %}
