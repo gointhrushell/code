@@ -37,7 +37,6 @@ def deleteMess(browser,ids):
     print("REQ: ",req.prepare())
 
 
-    
 if __name__ == '__main__':
     print("If you would ever like to change your email open this file in a text editor")
     print(os.path.expandvars(USERFILE))
@@ -58,34 +57,52 @@ if __name__ == '__main__':
     try:
         token = r.json()['token']
     except:
-        input("You may have typed your password incorrectly.\nPress any key to exit...")
+        input("You may have typed your password incorrectly.\nPress Enter to exit...")
         sys.exit(0)
     
     browser.headers.update({'authorization':token})
     
-    
-    r = browser.get('https://discordapp.com/api/v6/channels/229076842953441281/messages?limit=50')
-    messages = r.json()
-    print("Starting")
-    if len(messages)>0:
-        count=0
-        for i in messages:
-            if i['author']['username'] == username:
-                try:
-                    req = requests.Request('DELETE', 'https://discordapp.com/api/v6/channels/229076842953441281/messages/'+i['id'])
-                    prepped = browser.prepare_request(req)
-                    r=browser.send(prepped)
-                    count+=1
+    channel_url = "https://discordapp.com/api/v6/channels/229076842953441281/messages"
+    try:
+        count_to_del = int(input("How many messages would you like to delete [1-300]: "))
+        if count_to_del < 1 or count_to_del > 300:
+            raise ValueError
+    except:
+        print("Please give a valid number")
+        input("Press Enter to exit...")
+        sys.exit(0)
+    count = 0
+    loop_counter=0
+    while count < count_to_del and loop_counter <15:
+        if loop_counter == 0:
+            tmp_url = channel_url+"?limit=50"
+            r = browser.get(tmp_url)
+            messages = r.json()            
+        else:
+            tmp_url = channel_url+'?before='+messages[-1]['id']+"&limit=50"
+            r = browser.get(tmp_url)
+            messages = r.json()
+        
+        if len(messages)>0:
+            for i in messages:
+                if i['author']['username'] == username:
                     try:
-                        check = r.json()
-                        if check['retry_after']:
-                            print("Sleeping for", check['retry_after'])
-                            time.sleep(int(check['retry_after'])/100+1)
-                            
-                    except:
-                        pass
-                    time.sleep(.3)
-                except Exception as e:
-                    print(e)
-    
-        print("Deleted {} messages".format(count))
+                        req = requests.Request('DELETE', 'https://discordapp.com/api/v6/channels/229076842953441281/messages/'+i['id'])
+                        prepped = browser.prepare_request(req)
+                        r=browser.send(prepped)
+                        count+=1
+                        if count == count_to_del:
+                            break
+                        try:
+                            check = r.json()
+                            if check['retry_after']:
+                                print("Sleeping for", check['retry_after'])
+                                time.sleep(int(check['retry_after'])/100+1)
+                                
+                        except:
+                            pass
+                        time.sleep(.3)
+                    except Exception as e:
+                        print(e)
+        loop_counter+=1
+    input("Deleted {} messages\nPress Enter to exit...".format(count))
