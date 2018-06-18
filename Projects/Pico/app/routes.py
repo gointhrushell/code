@@ -1,12 +1,7 @@
-from flask import Flask, request, send_from_directory,render_template,flash,redirect,session
-import helpers
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'you-will-never-guess'
-flag = '{{flag}}'
-not_flag = "Nah, that's not it"
-
-
+from flask import render_template,flash
+from app import app,helpers
+#import helpers
+session = None
 @app.route('/')
 @app.route('/index')
 def index():
@@ -14,8 +9,11 @@ def index():
 
 @app.route('/admin',methods=['GET'])
 def admin():
-    if session['admin']:
-        return render_template("admin.html",title="Admin",user=session,flag="THIS IS A FLAG")
+    if session:
+        if session['admin']:
+            return render_template("admin.html",title="Admin",user=session,flag="THIS IS A FLAG")
+        else:
+            return render_template("admin.html",title="Denied",user=session,flag="Not yo flag")
     else:
         return render_template("admin.html",title="Denied",user=session,flag="Not yo flag")
     
@@ -31,7 +29,7 @@ def register():
             return redirect('/index')
         else:
             flash("Invalid user/password")
-    return render_template('register.html', title='Sign In', form=form,user=session)
+    return render_template('register.html', title='Sign In', form=form)
 
 
 @app.route('/create_card',methods=['GET','POST'])
