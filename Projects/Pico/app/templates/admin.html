@@ -1,14 +1,14 @@
-
-
-{% if user %}
-	{% if user.admin %}
-		{% extends "base.html" %}
+{% extends "base.html" %}
 		{% block content %}
-		{{flag}}
-		{% endblock %}
-	{% else %}
-		<h1>Denied</h1>
-	{% endif %}
+{% if current_user.admin %}
+		<h1>Welcome current_user.username</h1>
+		<p> Here's your flag: {{flag}} </p>
+		
 {% else %}
-<h1>What are you even doing?</h1>
+		<h1>Welcome {{ current_user.username }}!</h1>
+		<p> Here's your flag: <strong>Denied</strong> - {{flag}} </p>
+		
+		
 {% endif %}
+
+{% endblock %}

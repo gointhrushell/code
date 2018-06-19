@@ -8,13 +8,18 @@
     </head>
     <body>
         <div>
-            FlashCards:
+            FlaskCards:
             <a href='{{url_for("index")}}'>Home</a>
-            <a href='{{url_for("register")}}'>Login</a>
+			{% if current_user.is_anonymous %}
+            <a href='{{url_for("login")}}'>Login</a>
+			<a href='{{url_for("register")}}'>Register</a>
+			{% else %}
 			<a href='{{url_for("create_card")}}'>Create</a>
 			<a href='{{url_for("delete_card")}}'>Delete</a>
 			<a href='{{url_for("list_cards")}}'>List</a>
+			<a href='{{url_for("logout")}}'>Logout</a>
 			<a href='{{url_for("admin")}}'>Admin</a>
+			{% endif %}
         </div>
         <hr>
         {% with messages = get_flashed_messages() %}

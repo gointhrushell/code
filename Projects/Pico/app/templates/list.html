@@ -4,16 +4,13 @@
 {% if cards %}
 	<ul>
 	{% for card in cards %}
-		<li>{{ card['title'] }}
-			<ul>
-			<li>
-			{{ card['question'] }}
-			</li>
-			<li>
-			{{ card['answer'] }}
-			</li>
-			</ul>
-		</li>
+		<li>
+		Question: {{ card['question'] }}
+		</li> 
+
+		<li>
+		Answer: <div id='answer'>{{ card['answer'] }}</div>
+		</li>		
 		<br>
 	{% endfor %}
 	</ul>
