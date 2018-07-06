@@ -1,59 +1,98 @@
-from flask import render_template,flash
-from app import app,helpers
-#import helpers
-session = None
+from flask import render_template,flash,request,redirect,url_for,render_template_string
+from flask_login import current_user,login_user,logout_user,login_required
+from app import app,helpers,db
+from app.models import User,Card
+from werkzeug.urls import url_parse
+
+
+@app.errorhandler(404)
+def not_found_error(error):
+    if current_user.is_authenticated:
+        template = '''{% extends "base.html" %}
+        {% block content %}
+        <h1>File Not Found</h1>
+        <p>Sorry '''+current_user.username+'''...<a href="{{ url_for('index') }}">return home</a>?</p>
+{% endblock %}'''
+        return render_template_string(template)
+    return render_template('404.html'), 404
+
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template("index.html",user=session)
+    return render_template("index.html")
 
 @app.route('/admin',methods=['GET'])
+@login_required
 def admin():
-    if session:
-        if session['admin']:
-            return render_template("admin.html",title="Admin",user=session,flag="THIS IS A FLAG")
-        else:
-            return render_template("admin.html",title="Denied",user=session,flag="Not yo flag")
-    else:
-        return render_template("admin.html",title="Denied",user=session,flag="Not yo flag")
+    if current_user.is_authenticated:
+        if current_user.admin:
+            return render_template("admin.html",title="Admin",flag="THIS IS A FLAG")
+        return render_template("admin.html",title="Denied",flag="Not yo flag")
+    return redirect(url_for('index'))
+    
+@app.route('/login',methods=['GET','POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = helpers.LoginForm()
+    if form.validate_on_submit():
+        user=User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash("Invalid username or password")
+            return redirect(url_for('login'))
+        login_user(user,remember=form.remember_me.data)
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('list_cards')
+        return redirect(next_page)
+    return render_template('login.html',title='Sign In',form=form)
     
 @app.route('/register',methods=['GET','POST'])
 def register():
-    form = helpers.LoginForm()
-    
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = helpers.RegisterForm()
     if form.validate_on_submit():
-        myUser = helpers.User(form.username.data)
-        if myUser.is_valid():
-            session['name'] = myUser.name
-            session['admin'] = myUser.admin
-            return redirect('/index')
-        else:
-            flash("Invalid user/password")
-    return render_template('register.html', title='Sign In', form=form)
+        user = User(username=form.username.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash("Successfully registered")
+        return redirect(url_for("login"))
+    return render_template('register.html',title="Register",form=form)
+    
 
 
 @app.route('/create_card',methods=['GET','POST'])
+@login_required
 def create_card():
     form = helpers.CardForm()
-    if form.validate_on_submit():
-        render_template("create.html",title="Create",form=form,user=session)
-    else:
-        flash("Something went wrong")
-    return render_template("create.html",title="Create",form=form,user=session)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            card = Card(question=form.question.data,answer=form.answer.data,user_id=current_user.id)
+            db.session.add(card)
+            db.session.commit()
+            flash("Card created")
+            return render_template("create.html",title="Create",form=form)
+        else:
+            flash("Something went wrong")
+    return render_template("create.html",title="Create",form=form)
 
 @app.route('/delete_card',methods=['GET'])
+@login_required
 def delete_card():
     return render_template("dashboard.html",title="Delete",user=session)
 
 @app.route('/list_cards',methods=['GET'])
+@login_required
 def list_cards():
-    card=[{"title":"Card1","question":"This would be a question","answer":"answer here"},{"title":"Card2","question":"question2","answer":"answer2"}]
-    return render_template("list.html",title="List",cards=card,user=session)
+    return render_template("list.html",title="List",cards=Card.query.filter_by(user_id=current_user.id))
 
 @app.route('/logout',methods=['GET'])
+@login_required
 def logout():
-    session.clear()
-    return redirect('/index')
+    logout_user()
+    return redirect(url_for('index'))
 
     
 if __name__ == '__main__':
