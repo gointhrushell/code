@@ -1,32 +1,28 @@
-#include "main.h"
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-// a sample exported function
-void DLL_EXPORT SomeFunction(const LPCSTR sometext)
+BOOL APIENTRY DllMain (HINSTANCE hInst /* Library instance handle. */ ,
+                 DWORD reason       /* Reason this function is being called. */ ,
+                 LPVOID reserved /* Not used. */ )
 {
-    MessageBoxA(0, sometext, "DLL Message", MB_OK | MB_ICONINFORMATION);
-}
-
-extern "C" DLL_EXPORT BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
-{
-    switch (fdwReason)
+    switch (reason)
     {
-        case DLL_PROCESS_ATTACH:
-            // attach to process
-            // return FALSE to fail DLL load
+ case DLL_PROCESS_ATTACH:
+     MessageBox (0, "Hello World from DLL!\n", "Hi", MB_ICONINFORMATION);
+        break;
 
-            break;
+ case DLL_PROCESS_DETACH:
+        break;
 
-        case DLL_PROCESS_DETACH:
-            // detach from process
-            break;
+ case DLL_THREAD_ATTACH:
+     MessageBox (0, "Hello World from DLL!\n", "Hi", MB_ICONINFORMATION);
+        break;
 
-        case DLL_THREAD_ATTACH:
-            // attach to thread
-            break;
-
-        case DLL_THREAD_DETACH:
-            // detach from thread
-            break;
+ case DLL_THREAD_DETACH:
+        break;
     }
-    return TRUE; // successful
+
+    /* Returns TRUE on success, FALSE on failure */
+    return TRUE;
 }

@@ -1,3 +1,4 @@
 EXPORTS
-    DllMain@12 @1
-    SomeFunction @2
+    _Z7DllMainP11HINSTANCE__jPv @1
+    __gcc_deregister_frame @2
+    __gcc_register_frame @3

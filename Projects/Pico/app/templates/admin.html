@@ -1,8 +1,21 @@
 {% extends "base.html" %}
-		{% block content %}
+{% block app_content %}
 {% if current_user.admin %}
 		<h1>Welcome current_user.username</h1>
 		<p> Here's your flag: {{flag}} </p>
+		
+		{% if user_list %}
+			<ul>
+			{% for user in user_list %}
+				<li>
+				{{ user['username'] }}: {{ user['comments'] }}
+				</li> 	
+				<br>
+			{% endfor %}
+			</ul>
+		{% else %}
+			<p>No other registered users!</p>
+		{% endif %}
 		
 {% else %}
 		<h1>Welcome {{ current_user.username }}!</h1>

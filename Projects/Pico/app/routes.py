@@ -7,26 +7,26 @@ from werkzeug.urls import url_parse
 
 @app.errorhandler(404)
 def not_found_error(error):
-    if current_user.is_authenticated:
-        template = '''{% extends "base.html" %}
-        {% block content %}
-        <h1>File Not Found</h1>
-        <p>Sorry '''+current_user.username+'''...<a href="{{ url_for('index') }}">return home</a>?</p>
-{% endblock %}'''
-        return render_template_string(template)
-    return render_template('404.html'), 404
+    template = '''{% extends "base.html" %}
+    {% block content %}
+    <h1>File Not Found</h1>
+    <p>Sorry '''+("Anonymous User" if not current_user.is_authenticated else current_user.username)+'''...
+    <a href="{{ url_for('index') }}">return home</a>?</p>
+    {% endblock %}'''
+    return render_template_string(template,title="404")
+    
 
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template("index.html")
+    return render_template("index.html",title="Home")
 
 @app.route('/admin',methods=['GET'])
 @login_required
 def admin():
     if current_user.is_authenticated:
         if current_user.admin:
-            return render_template("admin.html",title="Admin",flag="THIS IS A FLAG")
+            return render_template("admin.html",title="Admin",flag="THIS IS A FLAG",user_list=User.query.filter(User.id!=1))
         return render_template("admin.html",title="Denied",flag="Not yo flag")
     return redirect(url_for('index'))
     
@@ -43,7 +43,7 @@ def login():
         login_user(user,remember=form.remember_me.data)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('list_cards')
+            next_page = url_for('index')
         return redirect(next_page)
     return render_template('login.html',title='Sign In',form=form)
     
@@ -78,10 +78,6 @@ def create_card():
             flash("Something went wrong")
     return render_template("create.html",title="Create",form=form)
 
-@app.route('/delete_card',methods=['GET'])
-@login_required
-def delete_card():
-    return render_template("dashboard.html",title="Delete",user=session)
 
 @app.route('/list_cards',methods=['GET'])
 @login_required
@@ -94,6 +90,16 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+###################### TODO ####################
+@app.route('/delete_card',methods=['GET'])
+@login_required
+def delete_card():
+    return render_template("dashboard.html",title="Delete")
+
+@app.route('/update_comment',methods=['GET'])
+@login_required
+def update_comment():
+    return redirect(url_for("admin"))
     
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
