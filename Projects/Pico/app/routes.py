@@ -1,4 +1,8 @@
-from flask import render_template,flash,request,redirect,url_for,render_template_string
+if __name__ == '__main__':
+    print("Please use run.py")
+    exit()
+    
+from flask import render_template,flash,request,redirect,url_for,render_template_string,abort
 from flask_login import current_user,login_user,logout_user,login_required
 from app import app,helpers,db
 from app.models import User,Card
@@ -7,13 +11,22 @@ from werkzeug.urls import url_parse
 
 @app.errorhandler(404)
 def not_found_error(error):
-    template = '''{% extends "base.html" %}
-    {% block content %}
-    <h1>File Not Found</h1>
-    <p>Sorry '''+("Anonymous User" if not current_user.is_authenticated else current_user.username)+'''...
-    <a href="{{ url_for('index') }}">return home</a>?</p>
-    {% endblock %}'''
-    return render_template_string(template,title="404")
+    try:
+        template = '''{% extends "base.html" %}
+        {% block content %}
+        <h1>File Not Found</h1>
+        <p>Sorry '''+("Anonymous User" if not current_user.is_authenticated else str(current_user.username))+'''...
+        <a href="{{ url_for('index') }}">return home</a>?</p>
+        {% endblock %}'''
+        return render_template_string(template,title="404")
+    except Exception:
+        template = '''{% extends "base.html" %}
+        {% block content %}
+        <h1>File Not Found</h1>
+        <p>Sorry we can't find that file and something is wrong with your name</p>
+        <p><a href="{{ url_for('index') }}">return home</a>?</p>
+        {% endblock %}'''
+        return render_template_string(template,title="404")
     
 
 @app.route('/')
@@ -25,9 +38,10 @@ def index():
 @login_required
 def admin():
     if current_user.is_authenticated:
+        form = helpers.CommentForm()
         if current_user.admin:
             return render_template("admin.html",title="Admin",flag="THIS IS A FLAG",user_list=User.query.filter(User.id!=1))
-        return render_template("admin.html",title="Denied",flag="Not yo flag")
+        return render_template("admin.html",title="Denied",flag="Not yo flag",form=form)
     return redirect(url_for('index'))
     
 @app.route('/login',methods=['GET','POST'])
@@ -90,16 +104,23 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-###################### TODO ####################
-@app.route('/delete_card',methods=['GET'])
+@app.route('/delete_card/<card_id>',methods=['GET'])
 @login_required
-def delete_card():
-    return render_template("dashboard.html",title="Delete")
+def delete_card(card_id):
+    record = Card.query.filter_by(id=card_id)
+    result = record.first()
+    if result is not None and current_user.id == result.user_id:
+        record.delete()
+        db.session.commit()
+        flash("Deleted card")
+    return redirect(url_for('list_cards'))
+
+###################### TODO ####################
+# Beautify the site
+# Stop using the 404 for the inject
 
 @app.route('/update_comment',methods=['GET'])
 @login_required
 def update_comment():
     return redirect(url_for("admin"))
     
-if __name__ == '__main__':
-    app.run(host='0.0.0.0')

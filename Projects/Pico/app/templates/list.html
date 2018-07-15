@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block content %}
+{% block app_content %}
 <h1>List of Cards</h1>
 {% if cards %}
 	<ul>
@@ -12,6 +12,9 @@
 		Answer: <div id='answer'>{{ card['answer'] }}</div>
 		</li>		
 		<br>
+		<form action="{{url_for('delete_card',card_id=card['id'])}}">
+		<input type="submit" value="Delete" />
+		</form>
 	{% endfor %}
 	</ul>
 {% else %}

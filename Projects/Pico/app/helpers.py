@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField
+
 from wtforms.validators import DataRequired,length,EqualTo,ValidationError
 from werkzeug.security import generate_password_hash,check_password_hash
 from app.models import User
@@ -24,13 +25,9 @@ class RegisterForm(FlaskForm):
             raise ValidationError("Please pick a different username")
         
     
-    
 class CardForm(FlaskForm):
     #title = StringField("Card Title",validators=[DataRequired(),length(max=32)])
     question = StringField("Question",validators=[DataRequired(),length(max=256)])
     answer = StringField("Answer",validators=[DataRequired(),length(max=256)])
     submit = SubmitField('Create')
-    
-
-
     

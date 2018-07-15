@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
 {% block app_content %}
 {% if current_user.admin %}
 		<h1>Welcome current_user.username</h1>
@@ -21,6 +23,13 @@
 		<h1>Welcome {{ current_user.username }}!</h1>
 		<p> Here's your flag: <strong>Denied</strong> - {{flag}} </p>
 		
+		<br>
+		<p>User Comments</p>
+		<div class="row">
+			<div class="col-md-4">
+				{{wtf.quick_form(form) }}
+		</div>
+	<div>
 		
 {% endif %}
 

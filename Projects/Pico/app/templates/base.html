@@ -1,5 +1,4 @@
 <html>
-<link rel="shortcut icon" href="pico.svg">
 {% extends 'bootstrap/base.html' %}
     <head>
 	
@@ -29,13 +28,10 @@
 					</ul>
 					{% else %}
 					<ul class="nav navbar-nav">
-						<li><a href='{{url_for("create_card")}}'>Create</a></li>
+						<li><a href='{{url_for("create_card")}}'>Create Card</a></li>
 					</ul>
 					<ul class="nav navbar-nav">
-						<li><a href='{{url_for("delete_card")}}'>Delete</a></li>
-					</ul>
-					<ul class="nav navbar-nav">
-						<li><a href='{{url_for("list_cards")}}'>List</a></li>
+						<li><a href='{{url_for("list_cards")}}'>List Cards</a></li>
 					</ul>
 					<ul class="nav navbar-nav">
 						<li><a href='{{url_for("admin")}}'>Admin</a></li>
