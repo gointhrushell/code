@@ -142,10 +142,14 @@ def update_comment(user_id):
                 db.engine.execute("update User set comment = '"+request.form.get('comment')+"' where id="+str(user_id)+";")
                 flash("Comment updated")
             except:
-                flash("Something went wrong with the database")
+                flash("Something went wrong with the sqlite update")
         return redirect(url_for("admin"))
     except Exception as e:
         return redirect(url_for("admin"))
 
 
+########### TODO ###########
+# Change inject point to /index
+# Add username to navbar
+# Add table headers to the View/Update Comments
 
