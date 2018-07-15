@@ -26,7 +26,6 @@ class RegisterForm(FlaskForm):
         
     
 class CardForm(FlaskForm):
-    #title = StringField("Card Title",validators=[DataRequired(),length(max=32)])
     question = StringField("Question",validators=[DataRequired(),length(max=256)])
     answer = StringField("Answer",validators=[DataRequired(),length(max=256)])
     submit = SubmitField('Create')

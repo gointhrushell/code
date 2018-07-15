@@ -19,11 +19,11 @@
 					<ul class="nav navbar-nav">
 						<li><a href='{{url_for("index")}}'>Home</a></li>
 					</ul>
-					{% if current_user.is_anonymous %}
-					<ul class="nav navbar-nav">
+					<ul class="nav navbar-nav navbar-right">
 						<li><a href='{{url_for("login")}}'>Login</a></li>
 					</ul>
-					<ul class="nav navbar-nav">
+					{% if current_user.is_anonymous %}
+					<ul class="nav navbar-nav navbar-right">
 						<li><a href='{{url_for("register")}}'>Register</a></li>
 					</ul>
 					{% else %}
@@ -52,13 +52,15 @@
 			{% if messages %}
 			
 				{% for message in messages %}
-				<span style="color: red">{{ message }}</span>
+				<div class="alert alert-info">{{ message }}</div>
 				{% endfor %}
 			
 			{% endif %}
 			{% endwith %}
+
 			{% block app_content %}{%endblock%}
 			</div>
+
 		{% endblock %}
     </body>
 </html>

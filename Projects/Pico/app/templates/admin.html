@@ -1,35 +1,53 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
+
 
 {% block app_content %}
+<h1 class="page-header text-capitalize">Welcome {{current_user.username}}</h1>
 {% if current_user.admin %}
-		<h1>Welcome current_user.username</h1>
 		<p> Here's your flag: {{flag}} </p>
-		
-		{% if user_list %}
-			<ul>
-			{% for user in user_list %}
-				<li>
-				{{ user['username'] }}: {{ user['comments'] }}
-				</li> 	
-				<br>
-			{% endfor %}
-			</ul>
+		{% if current_user.id == 1 %}
+			
+			{% if user_list %}
+			<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title"><a data-toggle="collapse" href="#comments">View/Update Comments</a></h4>
+					</div>
+				<div id="comments" class="panel-collapse collapse">
+					<div class="panel-body">
+						<ul class="list-unstyled">
+						{% for user in user_list %}
+							<li>
+							<strong>User: </strong>{{ user['username'] }}
+								<div class="well well-sm">
+									{{ user['comment'] }}
+								</div>
+							<div class="form-group">
+								<form action="{{url_for('update_comment',user_id=user['id'])}}" method='POST'>
+									<label for="comment">New Comment:</label>
+									<input type="text" class="form-control" id="comment" name="comment">
+									<input type="submit" class="btn btn-default" value="Change Comment" />
+								</form>
+							</div>
+							</li> 	
+							<br>
+						{% endfor %}
+						</ul>
+					</div>
+				</div>
+			{% else %}
+				<p>No other registered users!</p>
+			{% endif %}
 		{% else %}
-			<p>No other registered users!</p>
+		Maybe you should try actually being the admin (user_id 1) 
 		{% endif %}
+
 		
 {% else %}
-		<h1>Welcome {{ current_user.username }}!</h1>
+		
 		<p> Here's your flag: <strong>Denied</strong> - {{flag}} </p>
 		
-		<br>
-		<p>User Comments</p>
-		<div class="row">
-			<div class="col-md-4">
-				{{wtf.quick_form(form) }}
-		</div>
-	<div>
+
 		
 {% endif %}
 

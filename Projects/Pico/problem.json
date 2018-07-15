@@ -1,9 +1,9 @@
 {
-  "name": "Lazy Dev",
+  "name": "Flaskcards",
   "category": "Web Exploitation",
-  "description": "My class likes to share study materials so to help everyone out I coded up this <a href=\"http://{{server}}:{{port}}\">website</a> for flashcards!",
+  "description": "Quizlet is blocked at school for some reason, so I made this <a href=\"http://{{server}}:{{port}}\">website</a> so we can still have flash cards.",
   "score" : 100,
-  "hints": ["Are there any common vulnerabilities with the backend of the website?","Is there anywhere that filtering doesn't seem to work quite right?" ],
+  "hints": ["Are there any common vulnerabilities with the backend of the website?","Is there anywhere that filtering doesn't get applied?" ],
   "author": "Austin McWhirter",
   "organization": "picoCTF"
 }
