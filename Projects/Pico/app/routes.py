@@ -2,7 +2,7 @@ if __name__ == '__main__':
     print("Please use run.py")
     exit()
     
-from flask import render_template,flash,request,redirect,url_for,render_template_string,abort
+from flask import render_template,flash,request,redirect,url_for,render_template_string,abort,get_flashed_messages
 from flask_login import current_user,login_user,logout_user,login_required
 from app import app,helpers,db
 from app.models import User,Card
@@ -17,7 +17,61 @@ def not_found_error(error):
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template("index.html",title="Home")
+    try:
+        template = '''<html>
+    <head>
+        <title>Home</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
+
+		<nav class="navbar navbar-default">
+			<div class="container">
+				<div class="navbar-header">
+					<a class="navbar-brand" href="/index">Flaskcards</a>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+					<ul class="nav navbar-nav">
+						<li><a href='/index'>Home</a></li>
+					</ul>
+					''' + ('''
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href='/login'>Login</a></li>
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href='/register'>Register</a></li>
+					</ul> ''' if current_user.is_anonymous else '''
+					<ul class="nav navbar-nav">
+						<li><a href='/create_card'>Create Card</a></li>
+					</ul>
+					<ul class="nav navbar-nav">
+						<li><a href='/list_cards'>List Cards</a></li>
+					</ul>
+					<ul class="nav navbar-nav">
+						<li><a href='/admin'>Admin</a></li>
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href='/logout'>Logout</a></li>
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a class="text-capitalize" href="/">''' + current_user.username.replace('{','').replace('}','') + '''</a></li>
+					</ul>
+				</div>''')+'''</div>
+		</nav>
+
+
+
+                <h1 class="page-header text-capitalize">
+                Welcome '''+ str(current_user.username)+'''!</h1>
+                </div>
+
+    </body>
+</html>'''   
+        return render_template_string(template,title="Home")
+    except:
+        return render_template("index.html",title="Home")
 
 @app.route('/admin',methods=['GET'])
 @login_required
@@ -43,29 +97,16 @@ def denied():
 def login():
     if current_user.is_authenticated:
         try:
-            template = '''{% extends "base.html" %}
-                {% block app_content %}
-                <h1 class="page-header">Oops!</h1>
-                <p>You're already logged in '''+ str(current_user.username)+'''!<br>
-                Want to see your 
-                <a href="{{ url_for('list_cards') }}">flaskcards</a>?</p>
-                {% endblock %}'''  
-            return render_template_string(template,title='Login')
+            
+            return render_template("login.html",title='Login')
         except:
-            template = '''{% extends "base.html" %}
-                {% block app_content %}
-                <h1 class="page-header">Oops!</h1>
-                <p>You're already logged in but something is wrong with your name...<br>
-                Want to see your 
-                <a href="{{ url_for('list_cards') }}">flaskcards</a>?</p>
-                {% endblock %}''' 
-            return render_template_string(template,title='Login')
+            return redirect(url_for('index'))
     form = helpers.LoginForm()
     if form.validate_on_submit():
         user=User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash("Invalid username or password")
-            return redirect(url_for('login'))
+            return redirect(url_for('index'))
         login_user(user,remember=form.remember_me.data)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
@@ -138,18 +179,16 @@ def update_comment(user_id):
             flash("Comment too long")
         
         elif result is not None:
+            filtered =" "
             try:
-                db.engine.execute("update User set comment = '"+request.form.get('comment')+"' where id="+str(user_id)+";")
-                flash("Comment updated")
+                newcomment = request.form.get('comment')
+                if '-' in newcomment or '/' in newcomment or '*' in newcomment:
+                    filtered+="- / and * keep breaking my database so I removed them"
+                            
+                db.engine.execute("update User set comment = '"+newcomment.replace('/','').replace('*','').replace('-','')+"' where id="+str(user_id)+";")
+                flash("Comment updated"+filtered)
             except:
-                flash("Something went wrong with the sqlite update")
+                flash("Something went wrong with the sqlite update"+filtered)
         return redirect(url_for("admin"))
     except Exception as e:
         return redirect(url_for("admin"))
-
-
-########### TODO ###########
-# Change inject point to /index
-# Add username to navbar
-# Add table headers to the View/Update Comments
-

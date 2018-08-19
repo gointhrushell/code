@@ -15,22 +15,25 @@
 					</div>
 				<div id="comments" class="panel-collapse collapse">
 					<div class="panel-body">
-						<ul class="list-unstyled">
+						<table class="table" style="width:100%">
+						<tr>
+							<th>id</th>
+							<th>username</th>
+							<th>comment</th>
+							<th>new comment</th>
+						</tr>
 						{% for user in user_list %}
-							<li>
-							<strong>User: </strong>{{ user['username'] }}
-								<div class="well well-sm">
-									{{ user['comment'] }}
-								</div>
+							<tr>
+							<td>{{user['id']}}</td>
+							<td>{{ user['username'] }}</td>
+							<td>{{ user['comment'] }}</td>
+							<td>
 							<div class="form-group">
 								<form action="{{url_for('update_comment',user_id=user['id'])}}" method='POST'>
-									<label for="comment">New Comment:</label>
 									<input type="text" class="form-control" id="comment" name="comment">
 									<input type="submit" class="btn btn-default" value="Change Comment" />
 								</form>
-							</div>
-							</li> 	
-							<br>
+							</div></td></tr>
 						{% endfor %}
 						</ul>
 					</div>
