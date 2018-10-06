@@ -56,7 +56,7 @@ if __name__ == '__main__':
     r=browser.post('https://discordapp.com/api/v6/auth/login',json=datas,verify=False)
     try:
         token = r.json()['token']
-    except:
+    except Exception as e:
         input("You may have typed your password incorrectly.\nPress Enter to exit...")
         sys.exit(0)
     
