@@ -51,6 +51,12 @@ class Tunnel(object):
             raise ValueError
     
     def _validate_user(self):
+        if self.user.strip() == '':
+            print("Username can not be blank")
+            raise ValueError
+        if self.user[0] not in string.ascii_letters:
+            print("Username must start with a letter")
+            raise ValueError
         if not all(map(lambda x : x in string.ascii_letters+string.digits,self.user)):
             print("Username {} invalid".format(self.user))
             raise ValueError
@@ -63,25 +69,25 @@ class Tunnel(object):
             raise ValueError
         if ip == 'localhost':
             return
-        try:
-            if socket.gethostbyname(ip):
-                return
-        except:
-            pass
         octs = ip.split('.')
+        try:
+            if not all(map(lambda x: x.isdigit(),octs)):        
+                if socket.gethostbyname(ip):
+                    return
+        except:
+            print("IP could not resolve")
+            raise ValueError
+        
         
         if len(octs) != 4:
             print("Invalid number of octets in ip {}".format(ip))
             raise IndexError
         
-        if not all(map(lambda x: x.isdigit,octs)):
-            print("Invalid ip {}".format(ip))
-            raise ValueError
         
         if octs[0] == '127':
             return
-        
-        elif int(octs[0]) <=0 or int(octs[0])>=255:
+          
+        if int(octs[0]) <=0 or int(octs[0])>=255:
             print("ip address can not start with {}".format(octs[0]))
             raise ValueError
         
@@ -102,27 +108,34 @@ class Tunnel(object):
         returns pid of ssh tunnel'''
         self._validate_type()
         self._validate_user()
-        self._validate_ip(self.redirector)
+        
+        if self.dynamic or self.local:
+            self._validate_ip(self.redirector)
+            
         if self.dynamic:
+            
             cmd = 'ssh -p {} -NfD {} {}@{}'.format(self.ssh_port,self.dest_port,self.user,self.redirector)
             #print(cmd)
             #return
         
-        self._validate_ip(self.destination)
-        self._validate_ip(self.origin)
+        else:
+            self._validate_ip(self.destination)
         
         if self.local:
-            cmd = 'ssh -p {} -NfL {}:{}:{}:{} {}@{}'.format(self.ssh_port,self.origin,self.orig_port,self.destination,self.dest_port,self.user,self.redirector)
+            if self.destination == 'localhost' or self.destination[0:len('127.0.0.')] == '127.0.0.':
+                self.destination = self.redirector
+            cmd = 'ssh -p {} -NfL {}:{}:{} {}@{}'.format(self.ssh_port,self.orig_port,self.destination,self.dest_port,self.user,self.redirector)
             #print(cmd)
             #return
         
-        
         if self.remote:
-            cmd = 'ssh -p {} -NfR {}:{}:{}:{} {}@{}'.format(self.ssh_port,self.origin,self.orig_port,self.destination,self.dest_port,self.user,self.origin)
+            self._validate_ip(self.origin)
+            cmd = 'ssh -p {} -NfR {}:{}:{} {}@{}'.format(self.ssh_port,self.orig_port,self.destination,self.dest_port,self.user,self.origin)
             #print(cmd)
             #return
             
         print(cmd)
+
         if not DEBUG:
             x = subprocess.Popen(cmd.split(),stdout=subprocess.PIPE,stdin=subprocess.PIPE,stderr=subprocess.PIPE)
             result = x.stderr.readline()
@@ -132,6 +145,9 @@ class Tunnel(object):
                 raise KeyError
             else:
                 print(x.stdout.readline())
+        
+        return cmd
+        
     def _shell(self):
         desktop = os.environ.get('XDG_CURRENT_DESKTOP')
         if desktop is not None:
@@ -172,7 +188,7 @@ class Tunnel(object):
         
   
 if __name__=='__main__':  
-    x = Tunnel(remote=True)
+    x = Tunnel(dynamic=True)
     x.origin='127.0.0.1'
     x.orig_port=9000
     x.destination="10.10.10.93"
