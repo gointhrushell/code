@@ -11,23 +11,34 @@ class Tunnel(object):
     remote is equivalent to ssh -NfR origin:port:destination:port
     local is equivalent to ssh -NfL localhost:port:destination:port
     dynamic is equivalent to ssh -NfD port'''
-    def __init__(self,user='root',ssh_port=22,origin_port=9000,destination_port=9000,remote=False,local=False,dynamic=False):
-        self.local=local
-        self.remote=remote
-        self.dynamic=dynamic        
+    
+    def __init__(self,args):
+        # New Tunnel
+        if isinstance(args,dict):
+            try:
+                self.local=args['local']
+                self.remote=args['remote']
+                self.dynamic=args['dynamic']               
+                self.user=args['user']
+                self.orig_port=args['origin_port']
+                self.dest_port=args['destination_port']
+                self.ssh_port=args['ssh_port']
+                
+            except Exception as e: # Need to catch key not found errors here but we'll work on that later
+                print(e)
+                
+            
+        # Attempt to tunnel through another tunnel...but how to determine source/dest from here....
+        elif isinstance(args,Tunnel):
+            try:
+                print("Attempt to consume")
+            except:
+                pass
+            
         self._validate_type()
-
-        self.user= user
         self._validate_user()
-        
-        self.origin = ''
-        self.orig_port=origin_port
-        self.destination = ''
-        self.dest_port=destination_port
-        self.redirector = ''
-        self.pid = ''
-        self.ssh_port = ssh_port
         self._validate_ports()
+        
     
     def _validate_type(self):
         '''Verifies ssh settings'''
@@ -41,14 +52,19 @@ class Tunnel(object):
     
     def _validate_ports(self):
         if not (isinstance(self.ssh_port,int) and isinstance(self.dest_port,int) and isinstance(self.orig_port,int)):
-            if self.ssh_port<0 or self.ssh_port>65535:
-                print("SSH port must be between 0 and 65535, not {}".format(self.ssh_port))
-            if self.dest_port<0 or self.dest_port>65535:
-                print("Destination port must be between 0 and 65535, not {}".format(self.dest_port))
-            if self.orig_port<0 or self.orig_port>65535:
-                print("Origin port must be between 0 and 65535, not {}".format(self.orig_port))
-            print("Something went wrong with your port values.\nMake sure they are all integers 0 < x <= 65535")
+            print("One of your ports is not an integer")
             raise ValueError
+        if self.ssh_port<0 or self.ssh_port>65535:
+            print("SSH port must be between 0 and 65535, not {}".format(self.ssh_port))
+            raise ValueError
+        if self.dest_port<0 or self.dest_port>65535:
+            print("Destination port must be between 0 and 65535, not {}".format(self.dest_port))
+            raise ValueError
+        if self.orig_port<0 or self.orig_port>65535:
+            print("Origin port must be between 0 and 65535, not {}".format(self.orig_port))
+            raise ValueError
+        #print("Something went wrong with your port values.\nMake sure they are all integers 0 < x <= 65535")
+        
     
     def _validate_user(self):
         if self.user.strip() == '':

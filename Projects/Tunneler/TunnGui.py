@@ -53,7 +53,6 @@ class TunnGui(object):
     
     def getter(self,entry):
         val = entry.get("1.0",tkinter.END)
-        #print("Returning {}".format(val))
         return val
     
     def printer(self,entry):
@@ -66,8 +65,8 @@ class TunnGui(object):
             if ind==-1:
                 self.text.insert(tkinter.END,'Please select a tunnel type.\n')
             else:
-                tuntype= {"local":(True if ind==0 else False),"remote":(True if ind==1 else False),"dynamic":(True if ind==2 else False)}
-                tunnel = Tunneler.Tunnel(user=self.getter(self.entries[0]).strip(),ssh_port=22,origin_port=9000,destination_port=80,**tuntype)
+                tuntype= {"user":self.getter(self.entries[0]).strip(),"ssh_port":22,"origin_port":9000,"destination_port":80,"local":(True if ind==0 else False),"remote":(True if ind==1 else False),"dynamic":(True if ind==2 else False)}
+                tunnel = Tunneler.Tunnel(tuntype)
                 tunnel.origin=self.getter(self.entries[1]).strip()
                 tunnel.destination=self.getter(self.entries[2]).strip()
                 tunnel.redirector=self.getter(self.entries[3]).strip()
@@ -84,11 +83,6 @@ class TunnGui(object):
         inpbox = tkinter.Text(self.top,wrap=tkinter.WORD,height=2,width=25)
         inpbox.config()
         inpbox.grid(row=row,column=2,padx=5,pady=(20,10),sticky=tkinter.E+tkinter.W)           
-    
-        #button = tkinter.Button(self.top,height=2,width=5,text=buttonText)
-        #button.config(command= lambda: self.printer(inpbox))
-        #button.grid(row=row,column=3)
-        #self.buttons.append(button)
         self.entries.append(inpbox)
              
 if __name__=='__main__':  
