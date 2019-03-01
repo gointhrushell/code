@@ -1,8 +1,8 @@
 import proxy
 
 if __name__=='__main__':
-    x = proxy.Sanitize('simpleserv.py',8080)
+    x = proxy.Sanitize('./simpleserv.py',8080)
     x.setInputBlacklist(["PPP","LC/BC"])
-    x.setIPWhitelist(['192.168.10.10'])
+    x.setIPWhitelist(['127.0.0.1'])
     x.setOutputBlacklist(['Flag'])
     x.startListen()

@@ -16,3 +16,7 @@
 [2019-02-28 19:28:14] CRITICAL: Exploit bypassed self.input_blacklist from ('127.0.0.1', 49420)! f
  -> you chose f
 flag_is_herewhat would you like to do:  
+[2019-02-28 19:55:08] INFO: Starting local process './simpleserv.py'
+[2019-02-28 19:55:08] INFO: Starting local process './simpleserv.py': pid 3848
+[2019-02-28 19:55:10] INFO: Whitelisted ip ('127.0.0.1', 49434) called in
+[2019-02-28 19:55:10] INFO: Uncaught error string index out of range

@@ -74,20 +74,23 @@ class Sanitize:
                     return
                 
                 data += str(temp)
-    
+                
                 if any( good in addr for good in self.ip_whitelist):
                     self.unrestrictedCall(client,addr,data)
                     data=''                
-    
+                
                 if any( bad in data.lower() for bad in self.input_blacklist):
                     self.logger.warning("Potential exploit from %s ! %s", addr,data.encode('utf-8'))
                     client.close()
                     return
-                
+
                 # The data may come in parts (like when navigating a menu). This proceeds every time a new line is sent
-                if data[-1]=='\n':
-                    self.restrictedCall(client,addr, data)
-                    data = ''
+                try:
+                    if data[-1]=='\n':
+                        self.restrictedCall(client,addr, data)
+                        data = ''
+                except IndexError:
+                    pass
                     
             except socket.error:
                 return
@@ -107,7 +110,7 @@ class Sanitize:
             client.close()
             return
         else:
-            self.logger.info("Valid request: %s", data.strip())
+            self.logger.info("Valid request: %s", data.encode('utf-8'))
             client.send(str(output))
             return
 
