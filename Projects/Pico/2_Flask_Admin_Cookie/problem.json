@@ -1,0 +1,11 @@
+{
+  "name": "Flaskcards Skeleton Key",
+  "category": "Web Exploitation",
+  "description": "One of my classmates said they were able to log in to my admin panel....how did they do it? Connect <a href=\"http://{{server}}:{{port}}\">here</a>, Secret_Key is: {{flask_secret}}",
+  "score" : 75,
+  "hints": ["What can you do with a flask Secret_Key?" ],
+  "author": "Austin McWhirter",
+  "organization": "picoCTF",
+  "pip_requirements": ["Flask","flask-login","flask-wtf","flask-sqlalchemy","flask-bootstrap"],
+  "pip_python_version": "3"
+}

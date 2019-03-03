@@ -1,0 +1,11 @@
+{
+  "name": "Flaskcards...no comment",
+  "category": "Web Exploitation",
+  "description": "At least the admin panel has pretty limited functionality. You can't even see the comment I set for myself. Connect <a href=\"http://{{server}}:{{port}}\">here</a>, Secret_Key is: {{flask_secret}}",
+  "score" : 100,
+  "hints": ["Pay attention to the feedback you get","There is *very* limited filtering in place - this to stop you from breaking the challenge for yourself, not for you to bypass." ],
+  "author": "Austin McWhirter",
+  "organization": "picoCTF",
+  "pip_requirements": ["Flask","flask-login","flask-wtf","flask-sqlalchemy","flask-bootstrap"],
+  "pip_python_version": "3"
+}
