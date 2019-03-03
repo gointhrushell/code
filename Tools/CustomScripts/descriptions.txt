@@ -1,4 +1,0 @@
-Caesar:Performs all shifts for a Caesar Cipher based on string input
-DeZlib:Attempts to decompress zlib file
-Flask:Attempts to decrypt last copied text as Flask session data
-Rewrite:Will rewrite a python file with only selected functions included
