@@ -1,0 +1,17 @@
+# Nmap 7.01 scan initiated Fri Jul 26 16:45:48 2019 as: nmap -sC -sV -oA ellingson_nmap -T4 10.10.10.139
+Nmap scan report for 10.10.10.139
+Host is up (0.13s latency).
+Not shown: 998 filtered ports
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 7.6p1 Ubuntu 4 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   2048 49:e8:f1:2a:80:62:de:7e:02:40:a1:f4:30:d2:88:a6 (RSA)
+|_  256 c8:02:cf:a0:f2:d8:5d:4f:7d:c7:66:0b:4d:5d:0b:df (ECDSA)
+80/tcp open  http    nginx 1.14.0 (Ubuntu)
+|_http-server-header: nginx/1.14.0 (Ubuntu)
+| http-title: Ellingson Mineral Corp
+|_Requested resource was http://10.10.10.139/index
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Fri Jul 26 16:46:07 2019 -- 1 IP address (1 host up) scanned in 19.49 seconds

