@@ -3,3 +3,5 @@ peda*
 *.pyc
 *.ovpn
 id_rsa*
+.gdb*
+core
