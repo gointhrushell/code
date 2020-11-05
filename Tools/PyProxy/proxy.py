@@ -80,7 +80,7 @@ class Sanitize:
                     data=''                
                 
                 if any( bad in data.lower() for bad in self.input_blacklist):
-                    self.logger.warning("Potential exploit from %s ! %s", addr,data.encode('utf-8'))
+                    self.logger.warning("Potential exploit from %s:%s ! %s", addr[0],addr[1],data.encode('utf-8'))
                     client.close()
                     return
 
@@ -106,16 +106,16 @@ class Sanitize:
         output=self.new_process.read()
         
         if any(bad in output.lower() for bad in self.output_blacklist):
-            self.logger.critical("Exploit bypassed input blacklist from %s!\n%s -> %s ", addr,data.encode('utf-8'),output)
+            self.logger.critical("Exploit bypassed input blacklist from %s:%s!\nInput: %s\nResult: %s ", addr[0],addr[1],data.encode('utf-8'),output)
             client.close()
             return
         else:
-            self.logger.info("Valid request: %s", data.encode('utf-8'))
+            #self.logger.info("Valid request: %s", data.encode('utf-8'))
             client.send(str(output))
             return
 
     def unrestrictedCall(self,client,addr,data):
-        self.logger.info("Whitelisted ip %s called in",addr)
+        #self.logger.info("Whitelisted ip %s called in",addr)
         self.new_process.local(5)
         self.new_process.send(data)
         output=self.new_process.read()
